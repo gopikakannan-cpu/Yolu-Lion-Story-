@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>YOLU — The Lion Who Listened to the Universe</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --night:#06080e; --deep:#0a0c14; --forest:#0a1808;
+  --gold:#d4a843; --amber:#e8b040; --warm-gold:#f8d870;
+  --muted:#a07840; --dim:#5a3820;
+  --text:#e8dcc8; --text-soft:#c4b890; --text-dim:#7a6840;
+  --teal:#3a8ab0; --rose:#c03870; --purple:#6050c8; --green:#4a9050;
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--night);font-family:'Lora',serif;color:var(--text);touch-action:manipulation;}
+
+/* STARFIELD */
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur,3s) ease-in-out infinite var(--delay,0s);}
+@keyframes twinkle{0%,100%{opacity:var(--min-op,.3);transform:scale(1)}50%{opacity:1;transform:scale(1.6)}}
+.firefly{position:fixed;border-radius:50%;background:#f8e870;box-shadow:0 0 6px 3px #f8e87060;pointer-events:none;z-index:1;animation:fly var(--dur,8s) ease-in-out infinite var(--delay,0s);}
+@keyframes fly{0%{transform:translate(0,0);opacity:.7}25%{transform:translate(var(--dx1),var(--dy1));opacity:.4}50%{transform:translate(var(--dx2),var(--dy2));opacity:.9}75%{transform:translate(var(--dx3),var(--dy3));opacity:.5}100%{transform:translate(0,0);opacity:.7}}
+#moon{position:fixed;top:32px;right:52px;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 38%,#fffde8,#f5d97a 50%,#d4a84360 80%,transparent);box-shadow:0 0 30px 10px #d4a84330,0 0 80px 30px #d4a84312;pointer-events:none;z-index:1;animation:moonpulse 6s ease-in-out infinite;}
+@keyframes moonpulse{0%,100%{box-shadow:0 0 30px 10px #d4a84330,0 0 80px 30px #d4a84312}50%{box-shadow:0 0 40px 16px #d4a84340,0 0 100px 40px #d4a84318}}
+#trees{position:fixed;bottom:0;left:0;right:0;height:200px;pointer-events:none;z-index:1;}
+
+/* APP SHELL */
+#app{position:relative;z-index:10;width:100%;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* COVER */
+#cover{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(170deg,#060a14 0%,#0a1808 55%,#140c04 100%);padding:40px 32px;transition:opacity .8s ease,transform .8s ease;}
+#cover.hidden{opacity:0;pointer-events:none;transform:scale(1.04);}
+.cover-lion{font-size:80px;margin-bottom:20px;animation:lionpulse 3s ease-in-out infinite;filter:drop-shadow(0 0 20px #d4a843);}
+@keyframes lionpulse{0%,100%{filter:drop-shadow(0 0 14px #d4a843)}50%{filter:drop-shadow(0 0 32px #f8d870)}}
+.cover-series{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:5px;color:#4a7a30;text-transform:uppercase;margin-bottom:14px;}
+.cover-title{font-family:'Playfair Display',serif;font-size:clamp(56px,14vw,96px);font-weight:900;color:var(--amber);line-height:.9;text-align:center;text-shadow:0 0 50px #d4a84360,0 4px 0 #5a2a00;letter-spacing:-2px;margin-bottom:12px;}
+.cover-subtitle{font-family:'Lora',serif;font-style:italic;font-size:clamp(14px,3.8vw,19px);color:var(--text-soft);text-align:center;margin-bottom:8px;letter-spacing:.5px;}
+.cover-rule{width:140px;height:1.5px;background:var(--gold);margin:18px auto;opacity:.6;}
+.cover-author{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--dim);text-align:center;text-transform:uppercase;margin-bottom:36px;}
+.start-btn{background:transparent;border:1.5px solid var(--gold);color:var(--gold);padding:18px 48px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border-radius:var(--radius);transition:all .25s;outline:none;}
+.start-btn:hover,.start-btn:active{background:var(--gold);color:var(--night);}
+
+/* TOP BAR */
+#topbar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;border-bottom:1px solid rgba(212,168,67,.15);}
+.book-title-bar{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gold);}
+.chapter-badge{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
+
+/* TABS */
+#tabs{flex-shrink:0;display:flex;gap:0;overflow-x:auto;border-bottom:1px solid rgba(212,168,67,.12);scrollbar-width:none;}
+#tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:10px 18px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;outline:none;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* READER */
+#reader{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--dim) transparent;padding-bottom:160px;}
+#reader::-webkit-scrollbar{width:4px;}
+#reader::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px;}
+
+/* CHAPTER PAGES */
+.chapter-page{display:none;}
+.chapter-page.active{display:block;}
+
+/* BANNER */
+.ch-banner{padding:32px 24px 24px;border-bottom:1px solid rgba(212,168,67,.15);position:relative;overflow:hidden;}
+.ch-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(212,168,67,.06) 0%,transparent 70%);pointer-events:none;}
+.ch-number{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
+.ch-title{font-family:'Playfair Display',serif;font-size:clamp(22px,6vw,36px);font-weight:900;color:var(--amber);line-height:1.1;margin-bottom:8px;}
+.ch-subtitle{font-family:'Lora',serif;font-style:italic;font-size:13px;color:var(--text-soft);line-height:1.6;}
+.ch-dedication{font-family:'Lora',serif;font-style:italic;font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:1px;}
+
+/* STORY BODY */
+.story-body{padding:24px 24px 0;}
+.para{font-family:'Lora',serif;font-size:16px;line-height:1.9;color:var(--text-soft);margin-bottom:18px;text-align:justify;transition:background .3s,color .3s;}
+.para.speaking{background:rgba(212,168,67,.1);border-radius:6px;padding:6px 10px;margin-left:-10px;margin-right:-10px;color:var(--text);}
+.para em{color:var(--amber);font-style:italic;}
+.drop-cap::first-letter{font-family:'Playfair Display',serif;font-size:64px;font-weight:900;line-height:.7;float:left;margin:8px 12px 0 0;color:var(--gold);text-shadow:2px 3px 0 var(--dim);}
+
+/* SPEECH */
+.speech{font-family:'Lora',serif;font-style:italic;font-size:15px;line-height:1.75;color:var(--text);margin:16px 0;padding:14px 20px;background:rgba(255,255,255,.03);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;}
+
+/* SCIENCE BOX */
+.sci-box{margin:20px 0;padding:16px;background:#04060e;border:1px solid rgba(58,138,176,.3);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;font-family:'Space Mono',monospace;font-size:10px;line-height:1.9;color:#7ab8c8;}
+.sci-box .sci-label{font-size:8px;letter-spacing:4px;color:#2a5a6a;margin-bottom:8px;display:block;text-transform:uppercase;}
+
+/* MEMORY BOX */
+.mem-box{margin:20px 0;padding:16px;border-radius:0 8px 8px 0;font-family:'Lora',serif;font-style:italic;font-size:14px;line-height:1.85;}
+.mem-box .mem-attr{font-family:'Space Mono',monospace;font-style:normal;font-size:8px;letter-spacing:4px;text-transform:uppercase;margin-bottom:8px;display:block;}
+
+/* SONG BOX */
+.song-box{margin:24px 0;padding:24px 20px;background:#04050a;border:1px solid rgba(212,168,67,.2);border-radius:12px;text-align:center;position:relative;}
+.song-box::before,.song-box::after{content:'♪';position:absolute;font-size:22px;color:var(--gold);opacity:.2;}
+.song-box::before{top:12px;left:16px;}
+.song-box::after{bottom:12px;right:16px;content:'♫';}
+.song-line{font-family:'Lora',serif;font-style:italic;font-size:14px;line-height:2;color:#d8d0f0;}
+.song-attr{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:#2a2840;margin-top:12px;text-transform:uppercase;}
+.song-em{color:#b0a0ff;font-style:normal;}
+
+/* SCENE LABEL */
+.scene-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:5px;text-transform:uppercase;color:var(--dim);margin:24px 0 8px;padding:0 24px;}
+
+/* AUDIO BAR */
+#audio-bar{position:fixed;bottom:0;left:0;right:0;z-index:40;background:linear-gradient(to top,rgba(6,8,14,.98) 0%,rgba(6,8,14,.85) 100%);backdrop-filter:blur(12px);border-top:1px solid rgba(212,168,67,.2);padding:12px 20px 22px;}
+.audio-inner{display:flex;align-items:center;gap:14px;max-width:640px;margin:0 auto;}
+.play-btn{width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .15s,background .15s;box-shadow:0 0 24px rgba(212,168,67,.45);}
+.play-btn:active{transform:scale(.92);}
+.play-btn svg{width:22px;height:22px;fill:var(--night);}
+.audio-info{flex:1;overflow:hidden;}
+.audio-chapter{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.audio-progress-wrap{background:rgba(255,255,255,.08);border-radius:4px;height:5px;cursor:pointer;overflow:hidden;}
+.audio-progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),var(--amber));width:0%;transition:width .3s linear;}
+.audio-status{font-family:'Lora',serif;font-style:italic;font-size:11px;color:var(--text-soft);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.speed-btn{background:rgba(255,255,255,.06);border:1px solid rgba(212,168,67,.2);color:var(--muted);font-family:'Space Mono',monospace;font-size:9px;padding:8px 10px;border-radius:6px;cursor:pointer;flex-shrink:0;transition:all .2s;}
+.speed-btn:active{background:rgba(212,168,67,.15);color:var(--gold);}
+.voice-btn{background:transparent;border:1px solid rgba(212,168,67,.2);color:var(--dim);font-size:18px;width:42px;height:42px;border-radius:8px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.voice-btn:active{color:var(--gold);border-color:var(--gold);}
+
+/* VOICE PANEL */
+#voice-panel{position:fixed;bottom:0;left:0;right:0;z-index:45;background:rgba(6,8,14,.97);backdrop-filter:blur(16px);border-top:1px solid rgba(212,168,67,.2);padding:20px;transform:translateY(100%);transition:transform .3s ease;max-height:65vh;overflow-y:auto;}
+#voice-panel.open{transform:translateY(0);}
+.voice-panel-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;margin-bottom:16px;}
+.voice-panel-close{float:right;background:transparent;border:1px solid rgba(212,168,67,.2);color:var(--muted);font-family:'Space Mono',monospace;font-size:9px;padding:6px 12px;border-radius:6px;cursor:pointer;}
+.voice-item{padding:12px 16px;border-radius:8px;font-family:'Lora',serif;font-size:13px;color:var(--text-soft);cursor:pointer;transition:background .15s;margin-bottom:4px;border:1px solid transparent;}
+.voice-item:hover,.voice-item.selected{background:rgba(212,168,67,.1);border-color:rgba(212,168,67,.25);color:var(--gold);}
+#panel-overlay{position:fixed;inset:0;z-index:44;display:none;}
+#panel-overlay.open{display:block;}
+
+/* HELP HINT */
+.swipe-hint{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(90,56,32,.7);text-transform:uppercase;pointer-events:none;animation:hintin 2s ease forwards 2s;opacity:0;white-space:nowrap;}
+@keyframes hintin{0%{opacity:0;transform:translateX(-50%) translateY(8px)}30%{opacity:1;transform:translateX(-50%) translateY(0)}70%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-4px)}}
+
+@media(max-width:600px){.para{font-size:15px;}.ch-title{font-size:26px;}}
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+<div id="moon"></div>
+<svg id="trees" viewBox="0 0 800 200" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="110" cy="62" rx="52" ry="35" fill="#060e03"/>
+  <path d="M90 200 L90 95 L130 95 L130 200Z" fill="#060e03"/>
+  <ellipse cx="90" cy="90" rx="44" ry="30" fill="#060e03"/>
+  <ellipse cx="128" cy="82" rx="38" ry="26" fill="#060e03"/>
+  <path d="M0 200 L0 130 L25 80 L50 130 L50 200Z" fill="#050d03"/>
+  <ellipse cx="690" cy="65" rx="55" ry="38" fill="#060e03"/>
+  <path d="M670 200 L670 95 L715 95 L715 200Z" fill="#060e03"/>
+  <ellipse cx="670" cy="90" rx="46" ry="32" fill="#060e03"/>
+  <path d="M780 200 L780 120 L800 75 L800 200Z" fill="#050d03"/>
+  <ellipse cx="720" cy="80" rx="40" ry="28" fill="#060e03"/>
+  <path d="M300 200 L300 140 Q320 118 330 135 L330 200Z" fill="#060e03"/>
+  <ellipse cx="315" cy="134" rx="30" ry="20" fill="#060e03"/>
+  <path d="M470 200 L470 148 Q488 125 498 142 L498 200Z" fill="#060e03"/>
+  <ellipse cx="484" cy="140" rx="28" ry="18" fill="#060e03"/>
+</svg>
+
+<div id="app">
+
+  <!-- COVER -->
+  <div id="cover">
+    <div class="cover-series">The Kwari Forest Chronicles · Volume I</div>
+    <div class="cover-lion">🦁</div>
+    <div class="cover-title">YOLU</div>
+    <div class="cover-subtitle">The Lion Who Listened to the Universe</div>
+    <div class="cover-rule"></div>
+    <div class="cover-author">Gopika Kannan</div>
+    <button class="start-btn" onclick="startReading()">Begin the Story ✦</button>
+  </div>
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div>
+      <div class="book-title-bar">YOLU</div>
+      <div class="chapter-badge" id="topbar-chapter">Kwari Forest Chronicles · Vol. I</div>
+    </div>
+    <button class="voice-btn" onclick="toggleVoicePanel()" title="Choose narrator voice">🎙</button>
+  </div>
+
+  <!-- CHAPTER TABS -->
+  <div id="tabs">
+    <button class="tab active"  onclick="goToChapter(0)">Prologue</button>
+    <button class="tab"         onclick="goToChapter(1)">Ch.1 · River</button>
+    <button class="tab"         onclick="goToChapter(2)">Ch.2 · Light</button>
+    <button class="tab"         onclick="goToChapter(3)">Ch.3 · Mama</button>
+    <button class="tab"         onclick="goToChapter(4)">Ch.4 · Symphony</button>
+    <button class="tab"         onclick="goToChapter(5)">Ch.5 · Network</button>
+  </div>
+
+  <!-- READER -->
+  <div id="reader">
+
+    <!-- PROLOGUE -->
+    <div class="chapter-page active" id="ch-0">
+      <div class="ch-banner">
+        <div class="ch-number">Prologue</div>
+        <div class="ch-title">Yolu of the Kwari Forest</div>
+        <div class="ch-subtitle">the world he inhabits</div>
+        <div class="ch-dedication">For the forest — which was always already a library</div>
+      </div>
+      <div class="story-body">
+        <p class="para drop-cap" data-speak="Every morning, before the first bird had the courage to sing, Yolu was already awake. Not because sleep abandoned him — sleep adored him — but because dawn, in the Kwari Forest, whispered equations. The light bending through dew-heavy leaves obeyed Snell's Law. The mist rising off the river was a lesson in vapour pressure and entropy. The world was a textbook, and Yolu could not stop reading it.">Every morning, before the first bird had the courage to sing, Yolu was already awake. Not because sleep abandoned him — sleep adored him — but because dawn, in the Kwari Forest, whispered equations. The light bending through dew-heavy leaves obeyed Snell's Law. The mist rising off the river was a lesson in vapour pressure and entropy. The world was a textbook, and Yolu could not stop reading it.</p>
+        <p class="para" data-speak="He was tall for a lion — tall enough that the younger animals called him the walking baobab. His mane was something the forest talked about: thick and lustrous, the colour of deep amber at sunset, catching firefly-light in a way that made newcomers stop walking. But what they always remembered most were his eyes — round and amber-dark, with a light inside them that had nothing to do with the sun. A sparkle. As if he were always on the edge of understanding something magnificent.">He was tall for a lion — tall enough that the younger animals called him <em>'the walking baobab.'</em> His mane was something the forest talked about: thick and lustrous, the colour of deep amber at sunset, catching firefly-light in a way that made newcomers stop walking. But what they always remembered most were his eyes — round and amber-dark, with a light inside them that had nothing to do with the sun. A sparkle. As if he were always on the edge of understanding something magnificent.</p>
+        <p class="para" data-speak="He solved the Doppler effect at age five, standing in a field with his Mama, watching a hornbill fly past. He had never been taught what the Doppler effect was. He simply noticed that the pitch changed, went still for ninety seconds, and worked out the mathematics from first principles, aloud, in one unbroken stream of reasoning. His mother stood with tears running quietly down her face and said nothing until he finished. Then she said: Yes. That is exactly right. She looked it up later. He had every coefficient correct.">He solved the Doppler effect at age five, standing in a field with his Mama, watching a hornbill fly past. He had never been taught what the Doppler effect was. He simply noticed that the pitch changed, went still for ninety seconds, and worked out the mathematics from first principles, aloud, in one unbroken stream. His mother stood with tears running quietly down her face and said nothing until he finished. Then she said: <em>"Yes. That is exactly right."</em> She had every coefficient correct.</p>
+        <p class="para" data-speak="The family who surrounded Yolu was: Mama, who asked the one question that unlocked every solution and was the true facilitator of his genius; Amma, his maternal grandmother, infinitely patient, who helped him understand others and adored him completely; Popey, his aunt and best friend, an engineer who taught him to breathe through the overwhelm and slow down; Dada, his father, an engineer and hunter-philosopher, who gave him the security of the ground; Athai, his aunt who believed absolutely that he would win the Nobel Prize; Bama, his paternal grandmother and mathematician who asked exactly the right questions; Thatha, his paternal grandfather and metallurgist; and Appa, his grandfather, a pilot and leader, now in the stars.">The family who surrounded Yolu: <em>Mama</em>, who asked the one question that unlocked every solution; <em>Amma</em>, his maternal grandmother, infinitely patient, who adored him completely; <em>Popey</em>, his aunt and best friend, who taught him to breathe through the overwhelm; <em>Dada</em>, his father, an engineer who gave him the ground; <em>Athai</em>, his aunt who was already certain he would win the Nobel Prize; <em>Bama</em>, his paternal grandmother and mathematician; <em>Thatha</em>, his paternal grandfather and metallurgist; and <em>Appa</em>, his grandfather, a pilot and leader, now in the stars.</p>
+        <div class="mem-box" style="background:#0e0a06;border:1px solid rgba(212,168,67,.2);border-left:4px solid #d4a843;color:#e0c080;">
+          <span class="mem-attr" style="color:#7a3808;">◈ Mama · from the family memory</span>
+          He was not yet one year old. I was humming, grinding herbs, and I moved around the table. He tracked the pitch change with his eyes. He was watching for the source of the sound to explain why the note had shifted. He was not yet walking. I set down my pestle. I thought: this one is going to need a very large forest.
+        </div>
+        <div class="song-box">
+          <div class="song-line">Every morning, before the first bird,</div>
+          <div class="song-line">the light bends through the dew-heavy leaves</div>
+          <div class="song-line">and the equations are already there,</div>
+          <div class="song-line">waiting to be noticed.</div>
+          <div class="song-line"><span class="song-em">I notice them. This is what I am for.</span></div>
+          <div class="song-attr">Yolu's Morning Song · Baobab Songbook, page 1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAPTER ONE -->
+    <div class="chapter-page" id="ch-1">
+      <div class="ch-banner">
+        <div class="ch-number">Chapter One</div>
+        <div class="ch-title">The River That Held Its Breath</div>
+        <div class="ch-subtitle">pH · dissolved oxygen · Le Chatelier's Principle</div>
+      </div>
+      <div class="story-body">
+        <div class="scene-label">The Kwari River · Dawn</div>
+        <p class="para drop-cap" data-speak="Three weeks since the rains. The river had gone silent — not quiet, but silent, the way things go silent when something is wrong. No fish. No current-churn. No frogs. Old Mama Tembo had sent word: Yolu, the river holds its breath.">Three weeks since the rains. The river had gone silent — not quiet, but <em>silent</em>, the way things go silent when something is wrong. No fish. No current-churn. No frogs. Old Mama Tembo had sent word: <em>'Yolu, the river holds its breath.'</em></p>
+        <div class="speech">"Yolu — my colony's trees are dying! We have done nothing different. The sun reaches us, the water reaches us — yet we wither." — Zuru, Chief Architect of Mound No. 7</div>
+        <p class="para" data-speak="Yolu lay on his back in the dying grove and stared upward for forty minutes. Then he sat up. He reached for his notebook. In thirty seconds he had the diagnosis.">Yolu lay on his back in the dying grove and stared upward for forty minutes. Then he sat up. He reached for his notebook. In thirty seconds he had the diagnosis.</p>
+        <div class="sci-box">
+          <span class="sci-label">◈ Yolu's Notebook — Entry 4,872</span>
+          River pH drop: 7.4 → 6.1 over 3 days.<br>
+          Upstream clay deposits + rainy-season runoff → acid surge.<br>
+          Dissolved O₂ collapsed → fish and frogs departed.<br>
+          Le Chatelier's Principle: system under stress shifts equilibrium.<br>
+          The river is not broken. It is responding. Find what it responds to.<br>
+          Fix: limestone buffer (CaCO₃) applied downstream.<br>
+          Chemistry, not force. Estimated recovery: 48 hours.
+        </div>
+        <p class="para" data-speak="Adding limestone downstream will neutralise the acid and restore the oxygen gradient. No force — just chemistry. By sundown, the river was breathing again. The fish returned before midnight.">"Adding limestone downstream will neutralise the acid and restore the oxygen gradient. No force — just chemistry!" By sundown, the river was breathing again. The fish returned before midnight.</p>
+        <div class="song-box">
+          <div class="song-line">The river remembers everything it was ever told —</div>
+          <div class="song-line">every stone it polished, every secret it once held.</div>
+          <div class="song-line"><span class="song-em">I am only listening to what it has to say;</span></div>
+          <div class="song-line">the chemistry of water is the poetry of clay.</div>
+          <div class="song-attr">Yolu's Morning Song · Baobab Songbook, page 12</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAPTER TWO -->
+    <div class="chapter-page" id="ch-2">
+      <div class="ch-banner">
+        <div class="ch-number">Chapter Two</div>
+        <div class="ch-title">The Shape of Light</div>
+        <div class="ch-subtitle">differential geometry · Gaussian curvature · geodesics</div>
+        <div class="ch-dedication">In memory of Appa — who flew highest and saw the curvature of everything</div>
+      </div>
+      <div class="story-body">
+        <div class="scene-label">The Dying Eastern Grove</div>
+        <p class="para drop-cap" data-speak="The eastern grove was yellowing — but the western grove, twenty metres away, thrived. Same soil. Same rain. Yolu lay on his back and looked upward. Not at the trees. At the shape the light made. The paths it took. The curves it followed.">The eastern grove was yellowing — but the western grove, twenty metres away, thrived. Same soil. Same rain. Yolu lay on his back and looked upward. Not at the trees. At the <em>shape</em> the light made. The paths it took. The curves it followed.</p>
+        <p class="para" data-speak="He had been five years old the afternoon Bama held out a sphere and asked one question: What is the shortest path on a curved surface? Then she left the room. He stared at it for forty minutes. Then he erupted: On the sphere, the straight line IS the curve! They are the same thing! Every coefficient correct. Bama had not said another word. That was enough.">He had been five years old the afternoon Bama held out a sphere and asked one question: <em>'What is the shortest path on a curved surface?'</em> Then she left the room. He stared at it for forty minutes. Then he erupted: <em>'On the sphere — the straight line IS the curve! They're the same thing!!'</em> Every coefficient correct. Bama had not said another word. That was enough.</p>
+        <div class="mem-box" style="background:#0a060e;border:1px solid rgba(138,80,200,.3);border-left:4px solid #8a50c8;color:#c8a8e8;">
+          <span class="mem-attr" style="color:#5a2888;">◈ Amma · that evening, Yolu age five</span>
+          She sat beside him without a word and watched, and when he finally looked up she was smiling the way she always smiled — as if the world had just done exactly what she always knew it would. She asked him to draw it again, slowly. She asked him what it felt like inside when he saw it. She made him feel that the discovery was the most important thing that had happened in the forest in a very long time. Perhaps it was.
+        </div>
+        <div class="sci-box">
+          <span class="sci-label">◈ Yolu's Notebook — Entry 4,891 · Differential Geometry of the Canopy</span>
+          A forest canopy is a curved 2-manifold embedded in 3-space.<br>
+          Dense multilayer canopy: K &gt; 0 → geodesics converge → soft diffuse light.<br>
+          Thinned canopy: K ≈ 0 (flat) → parallel rays → bleaching → stomatal failure.<br>
+          Diagnosis: eastern grove is geometry-stressed, not water-stressed.<br>
+          Fix: plant 3 arcs of canopy trees. Restore K &gt; 0. Uses Gauss-Bonnet theorem.<br>
+          Cost: 47 saplings and one afternoon.
+        </div>
+        <p class="para" data-speak="Six weeks later, the first new leaves unfurled in the eastern grove. The light, now threaded through a properly curved canopy, arrived at the understorey as a soft, scattered brilliance. Bama heard about it at dinner and said only: Gauss-Bonnet in an afternoon. Without prompting. Then she returned to her food. High praise, from Bama.">Six weeks later, the first new leaves unfurled in the eastern grove. The light, now threaded through a properly curved canopy, arrived at the understorey as a soft, scattered brilliance. Bama heard about it at dinner and said only: <em>"Gauss-Bonnet in an afternoon. Without prompting."</em> Then she returned to her food. High praise, from Bama.</p>
+        <div class="song-box">
+          <div class="song-line">Bama held a sphere and asked a question —</div>
+          <div class="song-line"><span class="song-em">she did not stay to give the answer.</span></div>
+          <div class="song-line">I stared at it for forty minutes</div>
+          <div class="song-line">until the answer walked in through my eyes.</div>
+          <div class="song-line">Amma was there when the answer arrived.</div>
+          <div class="song-line"><span class="song-em">She made it feel like the most important thing.</span></div>
+          <div class="song-attr">Yolu's Sphere Song · written age five · still sung today</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAPTER THREE -->
+    <div class="chapter-page" id="ch-3">
+      <div class="ch-banner">
+        <div class="ch-number">Chapter Three</div>
+        <div class="ch-title">What Mama Knows</div>
+        <div class="ch-subtitle">thermodynamics · molecular biology · osmosis · aquaporins</div>
+        <div class="ch-dedication">For Mama — who always knew he would figure it out, and waited</div>
+      </div>
+      <div class="story-body">
+        <div class="scene-label">The Great Drought · Day Forty-One</div>
+        <p class="para drop-cap" data-speak="Forty-one days without rain. The forest council had met three times. The river was a whisper. The trees were closing their leaves. And the animals were frightened in a way they had not been in living memory.">Forty-one days without rain. The forest council had met three times. The river was a whisper. The trees were closing their leaves. And the animals were frightened in a way they had not been in living memory.</p>
+        <div class="speech">"Look here, Yolu. The marula is still weeping at the leaf tips — even now, even in this heat. Every other tree has shut down completely. Why only the marula?" — Mama, already walking away.</div>
+        <div class="mem-box" style="background:#0e0806;border:1px solid rgba(200,120,32,.3);border-left:4px solid #c87820;color:#e0c080;">
+          <span class="mem-attr" style="color:#7a3808;">◈ Mama · the true facilitator</span>
+          She does not teach. She illuminates. She casts her curiosity like a beam and waits for his mind to catch fire. What she is never not surprised by is the depth of what ignites. She expected a smart child. She got something the forest had perhaps never seen before. She holds this with a very quiet, very steady awe.
+        </div>
+        <p class="para" data-speak="Twenty-two seconds. Then the melody started. He had it. The marula uses solute loading to keep its osmotic potential lower than the soil — it runs a thermodynamic engine to pull water uphill against entropy. And the whole forest could do this. All of them. With the right intervention.">Twenty-two seconds. Then the melody started. He had it. The marula uses solute loading to keep its osmotic potential lower than the soil — it runs a thermodynamic engine to pull water uphill against entropy. And the whole forest could do this. All of them. With the right intervention.</p>
+        <div class="sci-box">
+          <span class="sci-label">◈ Yolu's Notebook — Entry 4,891 · The Marula Model</span>
+          Thermodynamics: ΔG = ΔH − TΔS. Marula lowers ΔG by concentrating solutes.<br>
+          Molecular Biology: Aquaporin channels open when cytosolic pH &gt; 6.8.<br>
+          Marula maintains pH via malate buffering. Other trees: pH drops → wilt.<br>
+          Physics: Osmotic pressure π = iCRT. Increase C, pull water in.<br>
+          Transpiration cooling: L = 2260 J/g → local humidity up → VPD down.<br>
+          Fix: apply dilute calcium + malate to root zones. Reopen the channels.<br>
+          Recovery: 48 hrs to stop decline. Full restoration: 6 weeks.
+        </div>
+        <div class="mem-box" style="background:#060e08;border:1px solid rgba(74,144,80,.3);border-left:4px solid #4a9050;color:#90c898;">
+          <span class="mem-attr" style="color:#2a6030;">◈ Amma · that evening</span>
+          "Did you see Mama's face when you explained it?" He had. He would not forget it. "That," Amma said softly, "is what you are for, my love. Not just the answer. The face."
+        </div>
+        <div class="song-box">
+          <div class="song-line">Mama held a weeping leaf to the light</div>
+          <div class="song-line"><span class="song-em">and asked me why it wept when all the others had gone dry.</span></div>
+          <div class="song-line">She doesn't light the fire.</div>
+          <div class="song-line"><span class="song-em">She just knows exactly where to strike the match.</span></div>
+          <div class="song-attr">Yolu's Drought Song · sung at the planting of the first marula ring</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAPTER FOUR -->
+    <div class="chapter-page" id="ch-4">
+      <div class="ch-banner">
+        <div class="ch-number">Chapter Four</div>
+        <div class="ch-title">The Symphony of Everything</div>
+        <div class="ch-subtitle">data sonification · music as real-time ecosystem readout</div>
+        <div class="ch-dedication">For Popey — best friend, patient teacher · For Dada — the ground beneath everything</div>
+      </div>
+      <div class="story-body">
+        <div class="scene-label">The Baobab Workshop · Two Hours Before Dawn</div>
+        <p class="para drop-cap" data-speak="Third night in a row. Yolu had barely slept. The symphony was inside him and it needed to get out — all of it, all at once. This was the problem. The ideas arrived the way a river arrives at a delta: spreading, splitting, running in six directions simultaneously.">Third night in a row. Yolu had barely slept. The symphony was inside him and it needed to get out — all of it, all at once. This was the problem. The ideas arrived the way a river arrives at a delta: spreading, splitting, running in six directions simultaneously.</p>
+        <div class="mem-box" style="background:#050c0e;border:1px solid rgba(58,128,144,.3);border-left:4px solid #3a8090;color:#80b8c8;">
+          <span class="mem-attr" style="color:#1a5060;">◈ Popey — his best friend and regulator</span>
+          She was his aunt and she was his best friend and she was, in a way neither of them had words for, his regulator. When Yolu's mind went too fast, Popey slowed him down — not by stopping him, but by matching his pace just enough to give him something to push against. She is an engineer. She thinks in structures, in load-bearing, in what holds and what fails.
+        </div>
+        <p class="para" data-speak="She had taught him to breathe through the overwhelm. In four counts, hold four, out four. She guided his paw to write slowly, one letter at a time. She put one finger up when three thoughts erupted simultaneously and said: one thing, then the next thing. She arrived that morning and said: We are going to build this symphony the way you build a bridge — one span at a time.">She had taught him to breathe through the overwhelm — in four counts, hold four, out four. She guided his paw to write slowly. She put one finger up when three thoughts erupted simultaneously and said: <em>"One thing, then the next thing."</em> She arrived that morning and said: <em>"We are going to build this symphony the way you build a bridge — one span at a time."</em></p>
+        <div class="mem-box" style="background:#06080e;border:1px solid rgba(58,80,144,.3);border-left:4px solid #3a5090;color:#9098c8;">
+          <span class="mem-attr" style="color:#2a3060;">◈ Dada — the ground</span>
+          He arrived at sunrise because he always came when Yolu had not slept. He set down food on the workbench without a word, found a clear patch of floor, and sat. Large, steady paws. The patience of a structure that has stood through many seasons. Yolu looked at him once. Dada nodded once. That was enough. You are safe. I am here. Take all the time you need.
+        </div>
+        <div class="sci-box">
+          <span class="sci-label">◈ The Kwari Forest Symphony · Data Encoding Schema</span>
+          Temperature (°C)      →  Pitch / frequency (Hz)     [strings]<br>
+          Water flow rate       →  Tempo / rhythmic density    [woodwind]<br>
+          Species diversity H'  →  Harmonic complexity         [full orchestra]<br>
+          Soil pH / chemistry   →  Tonal key / mode            [tuned percussion]<br>
+          CO₂/O₂ ratio          →  Dynamics (ppp to fff)       [brass]<br>
+          Canopy light (PAR)    →  Timbre / overtone series    [harp / celesta]<br>
+          Root network signal   →  Bass continuo               [double bass]
+        </div>
+        <p class="para" data-speak="Dada picked up the first completed movement and read it like a blueprint. After a long time he set it down and said: This will hold. Three words. Yolu looked at him. Dada's private smile was out — the one he saved for moments too large for expression.">Dada picked up the first completed movement and read it like a blueprint. After a long time he set it down and said: <em>"This will hold."</em> Three words. Yolu looked at him. Dada's private smile was out — the one he saved for moments too large for expression.</p>
+        <div class="song-box">
+          <div class="song-line">Popey said: one thing, then the next thing.</div>
+          <div class="song-line"><span class="song-em">The ideas will wait. They always do.</span></div>
+          <div class="song-line">Dada sat on the floor and did not speak</div>
+          <div class="song-line"><span class="song-em">and the ground stopped moving.</span></div>
+          <div class="song-line">That is its own kind of music —</div>
+          <div class="song-line">the bass note beneath everything.</div>
+          <div class="song-attr">Yolu's Workshop Song · written at 4am · Popey asleep in the chair</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAPTER FIVE -->
+    <div class="chapter-page" id="ch-5">
+      <div class="ch-banner">
+        <div class="ch-number">Chapter Five</div>
+        <div class="ch-title">The Network Beneath Everything</div>
+        <div class="ch-subtitle">graph theory · immunology · biochemistry · game theory</div>
+        <div class="ch-dedication">For Athai — who always already knew</div>
+      </div>
+      <div class="story-body">
+        <div class="scene-label">Kwari Forest · Below the Soil · Before Dawn</div>
+        <p class="para drop-cap" data-speak="Something was moving through the root network. Not water. Not nutrients. Something that left a dark trail and made the trees shiver at their tips in the windless night. By morning, seventeen trees showed the lesions. The mycorrhizal network of Kwari Forest was under siege.">Something was moving through the root network. Not water. Not nutrients. Something that left a dark trail and made the trees shiver at their tips in the windless night. By morning, seventeen trees showed the lesions. The mycorrhizal network of Kwari Forest was under siege.</p>
+        <div class="mem-box" style="background:#0c0408;border:1px solid rgba(192,56,112,.3);border-left:4px solid #c03870;color:#e090b0;">
+          <span class="mem-attr" style="color:#7a1840;">◈ Athai — she who already knows</span>
+          Her belief in Yolu was not the soft uncertain kind. It was structural. Absolute. The kind that does not require evidence because it precedes evidence. She had known since before he could walk. She wrote it in her journal. She pressed it like a flower into every letter. "The Nobel Committee is going to feel like they are just confirming something that was already true."
+        </div>
+        <div class="speech">"Look at these two. Same species. Growing thirty centimetres apart. One is fine. One is dying. They share the same network underground, Yolu. How does one know something the other doesn't?" — Mama, already walking away.</div>
+        <p class="para" data-speak="Twenty-two seconds. Then: unequal information propagation across a network under attack. Graph theory. Immunology. Game theory. Biochemistry. He had them all simultaneously. He needed Popey. She arrived, looked at the chaos of papers, and said: Draw the network first. Before the biochemistry.">Twenty-two seconds. Then: <em>unequal information propagation across a network under attack.</em> Graph theory. Immunology. Game theory. Biochemistry. He had them all simultaneously. He needed Popey. She arrived, looked at the chaos of papers, and said: <em>"Draw the network first. Before the biochemistry."</em></p>
+        <div class="sci-box">
+          <span class="sci-label">◈ Yolu's Solution · Four Disciplines · One Problem</span>
+          GRAPH THEORY: Betweenness centrality → hub nodes broadcast SAR signal first.<br>
+          IMMUNOLOGY: Systemic Acquired Resistance. SA → NPR1 → PR genes ON.<br>
+          Jasmonate → MYC2 → defence wall. Signal not reaching low-centrality nodes.<br>
+          GAME THEORY: Network in Nash equilibrium of defection. Fix: tip payoff matrix.<br>
+          Cooperation becomes dominant strategy.<br>
+          BIOCHEMISTRY: SA + JA precursors + chitosan antagonist → hub root zones.<br>
+          Glucanase degrades fungal wall. Zero trees lost. Containment: 72 hours.
+        </div>
+        <div class="mem-box" style="background:#0c0408;border:1px solid rgba(192,56,112,.3);border-left:4px solid #c03870;color:#e090b0;">
+          <span class="mem-attr" style="color:#7a1840;">◈ Athai · to Amma · that evening</span>
+          "Did you see his face when he realised it was a game theory problem? He stopped moving entirely — just for a moment — and his eyes went somewhere else, and then came back and he already had it. All of it. At once. It was like watching someone remember something they always knew."
+        </div>
+        <div class="mem-box" style="background:#060e08;border:1px solid rgba(74,144,80,.3);border-left:4px solid #4a9050;color:#90c898;">
+          <span class="mem-attr" style="color:#2a6030;">◈ Amma · in reply</span>
+          "He will be embarrassed when he finds out we talk about him like this." Athai smiled. "Let him."
+        </div>
+        <div class="song-box">
+          <div class="song-line">Athai wrote it down before it happened —</div>
+          <div class="song-line"><span class="song-em">she said: I know, and so I am writing it,</span></div>
+          <div class="song-line">so that when the world catches up</div>
+          <div class="song-line">there will be a record that we were not surprised.</div>
+          <div class="song-line"><span class="song-em">Athai brought flowers. Dada was already there.</span></div>
+          <div class="song-attr">Yolu's Mycelium Song · sung while applying the hub-node treatment</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /reader -->
+
+  <!-- SWIPE HINT -->
+  <div class="swipe-hint">← swipe to change chapters →</div>
+
+  <!-- AUDIO BAR -->
+  <div id="audio-bar">
+    <div class="audio-inner">
+      <button class="play-btn" id="play-btn" onclick="togglePlay()">
+        <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="audio-info">
+        <div class="audio-chapter" id="audio-chapter-label">Tap ▶ to hear this chapter read aloud</div>
+        <div class="audio-progress-wrap" id="progress-wrap">
+          <div class="audio-progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="audio-status" id="audio-status">Web Speech · works in Chrome, Safari, Edge</div>
+      </div>
+      <button class="speed-btn" id="speed-btn" onclick="cycleSpeed()">1×</button>
+      <button class="voice-btn" onclick="toggleVoicePanel()" title="Choose narrator voice">🎙</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- VOICE PANEL -->
+<div id="panel-overlay" onclick="closeVoicePanel()"></div>
+<div id="voice-panel">
+  <div class="voice-panel-title">◈ Choose Narrator Voice
+    <button class="voice-panel-close" onclick="closeVoicePanel()">Close ✕</button>
+  </div>
+  <div id="voice-list"><em style="color:#5a3820;font-size:13px;">Loading voices…</em></div>
+</div>
+
+<script>
+// ── AMBIENT STARS & FIREFLIES ─────────────────────────────────────────────
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<180;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2.5+0.5,op=Math.random()*0.5+0.3;
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*65}%;width:${sz}px;height:${sz}px;--min-op:${op};--dur:${2+Math.random()*4}s;--delay:-${Math.random()*6}s;`;
+    c.appendChild(s);
+  }
+  for(let i=0;i<10;i++){
+    const f=document.createElement('div');f.className='firefly';
+    const sz=Math.random()*3+2;
+    f.style.cssText=`left:${10+Math.random()*80}%;top:${35+Math.random()*35}%;width:${sz}px;height:${sz}px;--dur:${6+Math.random()*9}s;--delay:-${Math.random()*9}s;--dx1:${(Math.random()-.5)*90}px;--dy1:${(Math.random()-.5)*70}px;--dx2:${(Math.random()-.5)*110}px;--dy2:${(Math.random()-.5)*90}px;--dx3:${(Math.random()-.5)*70}px;--dy3:${(Math.random()-.5)*60}px;`;
+    document.body.appendChild(f);
+  }
+})();
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let currentChapter=0,isPlaying=false,currentIdx=0;
+let synth=window.speechSynthesis;
+let voices=[],selectedVoice=null;
+const speeds=[0.8,1.0,1.2,1.5];
+let speedIdx=1;
+
+const CHAPTER_NAMES=[
+  "Prologue · Yolu of the Kwari Forest",
+  "Chapter One · The River That Held Its Breath",
+  "Chapter Two · The Shape of Light",
+  "Chapter Three · What Mama Knows",
+  "Chapter Four · The Symphony of Everything",
+  "Chapter Five · The Network Beneath Everything"
+];
+
+// ── BUILD QUEUE ───────────────────────────────────────────────────────────
+function buildQueue(chIdx){
+  const page=document.getElementById('ch-'+chIdx);
+  if(!page)return[];
+  const items=[];
+  // Chapter title
+  const title=page.querySelector('.ch-title');
+  if(title)items.push({text:title.textContent.trim(),el:null});
+  // All readable items
+  page.querySelectorAll('[data-speak], .speech, .mem-box, .song-box').forEach(el=>{
+    let text=el.dataset.speak||el.textContent.trim().replace(/\s+/g,' ');
+    if(text.length>8)items.push({text,el});
+  });
+  return items;
+}
+
+// ── CHAPTER NAVIGATION ────────────────────────────────────────────────────
+function goToChapter(idx){
+  stopSpeech();
+  document.querySelectorAll('.chapter-page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.getElementById('reader').scrollTop=0;
+  const tabs=document.querySelectorAll('.tab');
+  if(tabs[idx])tabs[idx].scrollIntoView({inline:'center',behavior:'smooth'});
+  currentChapter=idx; currentIdx=0;
+  document.getElementById('audio-chapter-label').textContent=CHAPTER_NAMES[idx];
+  document.getElementById('audio-status').textContent='Tap ▶ to hear this chapter read aloud';
+  updateProgress(0); updatePlayIcon(false);
+}
+
+// ── COVER ─────────────────────────────────────────────────────────────────
+function startReading(){
+  document.getElementById('cover').classList.add('hidden');
+  document.getElementById('topbar-chapter').textContent=CHAPTER_NAMES[0];
+}
+
+// ── SPEECH ────────────────────────────────────────────────────────────────
+function loadVoices(){
+  let all=synth.getVoices();
+  voices=all.filter(v=>v.lang.startsWith('en'));
+  if(!voices.length)voices=all;
+  const preferred=['Samantha','Google UK English Female','Karen','Moira','Victoria','Fiona','Daniel','Google US English','Alex','Microsoft Zira','Microsoft David'];
+  for(const name of preferred){const v=voices.find(v=>v.name.includes(name));if(v){selectedVoice=v;break;}}
+  if(!selectedVoice&&voices.length)selectedVoice=voices[0];
+  renderVoiceList();
+}
+if(synth&&synth.onvoiceschanged!==undefined)synth.onvoiceschanged=loadVoices;
+setTimeout(loadVoices,400);
+
+function speakItem(item,onEnd){
+  if(!synth)return onEnd&&onEnd();
+  synth.cancel();
+  const utt=new SpeechSynthesisUtterance(item.text);
+  utt.rate=speeds[speedIdx]; utt.pitch=1.05; utt.volume=1.0;
+  if(selectedVoice)utt.voice=selectedVoice;
+  document.querySelectorAll('.para.speaking').forEach(e=>e.classList.remove('speaking'));
+  if(item.el&&item.el.classList.contains('para')){
+    item.el.classList.add('speaking');
+    item.el.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  const preview=item.text.substring(0,55)+(item.text.length>55?'…':'');
+  document.getElementById('audio-status').textContent=preview;
+  utt.onend=()=>{if(item.el)item.el.classList.remove('speaking');onEnd&&onEnd();};
+  utt.onerror=()=>onEnd&&onEnd();
+  synth.speak(utt);
+}
+
+function playFrom(chIdx,startIdx){
+  const queue=buildQueue(chIdx);
+  if(!queue.length)return;
+  function next(i){
+    if(!isPlaying||i>=queue.length){
+      if(i>=queue.length){
+        isPlaying=false;updatePlayIcon(false);updateProgress(100);
+        document.getElementById('audio-status').textContent='Chapter complete ✦  Swipe to next →';
+        document.querySelectorAll('.para.speaking').forEach(e=>e.classList.remove('speaking'));
+      }
+      return;
+    }
+    currentIdx=i;
+    updateProgress(Math.round((i/queue.length)*100));
+    speakItem(queue[i],()=>{if(isPlaying)next(i+1);});
+  }
+  next(startIdx);
+}
+
+function togglePlay(){
+  if(!synth){document.getElementById('audio-status').textContent='Speech synthesis not available in this browser.';return;}
+  if(isPlaying){
+    isPlaying=false;synth.pause();updatePlayIcon(false);
+    document.getElementById('audio-status').textContent='Paused — tap ▶ to continue';
+  } else {
+    isPlaying=true;updatePlayIcon(true);
+    document.getElementById('audio-chapter-label').textContent=CHAPTER_NAMES[currentChapter];
+    if(synth.paused){synth.resume();}
+    else{playFrom(currentChapter,currentIdx);}
+  }
+}
+
+function stopSpeech(){
+  isPlaying=false;if(synth)synth.cancel();updatePlayIcon(false);
+  document.querySelectorAll('.para.speaking').forEach(e=>e.classList.remove('speaking'));
+  currentIdx=0;
+}
+
+function updatePlayIcon(playing){
+  document.getElementById('play-icon').innerHTML=playing
+    ?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
+    :'<path d="M8 5v14l11-7z"/>';
+}
+
+function updateProgress(pct){
+  document.getElementById('progress-fill').style.width=pct+'%';
+}
+
+// Click progress bar to seek
+document.getElementById('progress-wrap').addEventListener('click',function(e){
+  const rect=this.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  const queue=buildQueue(currentChapter);
+  const idx=Math.max(0,Math.min(Math.floor(pct*queue.length),queue.length-1));
+  stopSpeech();currentIdx=idx;updateProgress(Math.round(pct*100));
+  document.getElementById('audio-status').textContent='Tap ▶ to play from here';
+});
+
+function cycleSpeed(){
+  speedIdx=(speedIdx+1)%speeds.length;
+  document.getElementById('speed-btn').textContent=speeds[speedIdx]+'×';
+  if(isPlaying){synth.cancel();setTimeout(()=>{if(isPlaying)playFrom(currentChapter,currentIdx);},100);}
+}
+
+// ── VOICE PANEL ───────────────────────────────────────────────────────────
+function renderVoiceList(){
+  const list=document.getElementById('voice-list');list.innerHTML='';
+  if(!voices.length){list.innerHTML='<em style="color:#7a6840;font-size:13px;">No voices found. Try Chrome or Safari.</em>';return;}
+  voices.slice(0,25).forEach(v=>{
+    const el=document.createElement('div');
+    el.className='voice-item'+(v===selectedVoice?' selected':'');
+    el.textContent=v.name+' ('+v.lang+')';
+    el.onclick=()=>{
+      selectedVoice=v;
+      document.querySelectorAll('.voice-item').forEach(x=>x.classList.remove('selected'));
+      el.classList.add('selected');
+      const test=new SpeechSynthesisUtterance('Hello, I am Yolu of the Kwari Forest. Welcome to my story.');
+      test.voice=v;test.rate=speeds[speedIdx];synth.cancel();synth.speak(test);
+    };
+    list.appendChild(el);
+  });
+}
+function toggleVoicePanel(){
+  document.getElementById('voice-panel').classList.toggle('open');
+  document.getElementById('panel-overlay').classList.toggle('open');
+}
+function closeVoicePanel(){
+  document.getElementById('voice-panel').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('open');
+}
+
+// ── SWIPE / TOUCH ─────────────────────────────────────────────────────────
+let tx0=0,ty0=0,tt0=0;
+const reader=document.getElementById('reader');
+reader.addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;tt0=Date.now();},{passive:true});
+reader.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx0;
+  const dy=e.changedTouches[0].clientY-ty0;
+  const dt=Date.now()-tt0;
+  if(dt<380&&Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.6){
+    if(dx<0&&currentChapter<5)goToChapter(currentChapter+1);
+    if(dx>0&&currentChapter>0)goToChapter(currentChapter-1);
+  }
+},{passive:true});
+
+// ── KEYBOARD ──────────────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'&&currentChapter<5)goToChapter(currentChapter+1);
+  if(e.key==='ArrowLeft'&&currentChapter>0)goToChapter(currentChapter-1);
+  if(e.key===' '){e.preventDefault();togglePlay();}
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+goToChapter(0);
+</script>
+</body>
+</html>
